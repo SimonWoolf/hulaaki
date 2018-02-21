@@ -42,6 +42,10 @@ defmodule Hulaaki.Client do
         GenServer.call(pid, :disconnect)
       end
 
+      def violate_protocol(pid) do
+        GenServer.call(pid, :violate_protocol)
+      end
+
       ## GenServer callbacks
 
       def init(%{} = state) do
@@ -170,6 +174,11 @@ defmodule Hulaaki.Client do
 
       def handle_call(:disconnect, _from, state) do
         :ok = state.connection |> Connection.disconnect()
+        {:reply, :ok, state}
+      end
+
+      def handle_call(:violate_protocol, _from, state) do
+        :ok = state.connection |> Connection.violate_protocol()
         {:reply, :ok, state}
       end
 

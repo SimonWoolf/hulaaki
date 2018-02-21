@@ -74,6 +74,13 @@ defmodule Hulaaki.Connection do
   end
 
   @doc """
+  Sends invalid junk over the connection
+  """
+  def violate_protocol(pid) do
+    GenServer.call(pid, :violate_protocol)
+  end
+
+  @doc """
   Stops the Genserver process
   """
   def stop(pid) do
@@ -111,6 +118,14 @@ defmodule Hulaaki.Connection do
   def handle_call({_, message}, _from, state) do
     dispatch_message(state.transport, state.socket, message)
     Kernel.send(state.client, {:sent, message})
+    {:reply, :ok, state}
+  end
+
+  @doc false
+  def handle_call(:violate_protocol, _from, state) do
+    state.socket
+    |> set_active_once(state.transport)
+    |> state.transport.send(<<0,1,2,3,4,5,6,7,8,9>>)
     {:reply, :ok, state}
   end
 

@@ -4,6 +4,18 @@ defmodule Hulaaki.DecoderTest do
   alias Hulaaki.Message
   alias Hulaaki.Packet
 
+  test "decode remaining length when the length bytes haven't arrived yet" do
+    # A read can stop straight after the fixed header byte, leaving nothing to
+    # decode the length from. That's a partial packet, not an error.
+    assert {:partial, {0, ""}} == Decoder.decode_remaining_length(<<>>)
+  end
+
+  test "decode a packet whose fixed header arrived on its own" do
+    for first_byte <- [<<0x10>>, <<0x30>>, <<0x82>>, <<0xC0>>, <<0xE0>>] do
+      assert %{message: nil, remainder: ^first_byte} = Decoder.decode(first_byte)
+    end
+  end
+
   test "decode remaining length from provided bytes" do
     expected = {:partial, {321, ""}}
     received = Decoder.decode_remaining_length(<<193, 2>>)

@@ -65,6 +65,14 @@ defmodule Hulaaki.Decoder do
     decode_remaining_length(bytes, 0, 1)
   end
 
+  # The remaining length hasn't arrived yet. A read can stop anywhere, including
+  # straight after the fixed header byte, so this is an ordinary partial packet
+  # rather than an error: report it like every other incomplete case and let the
+  # caller wait for more bytes.
+  defp decode_remaining_length(<<>>, accumulator, _multiplier) do
+    {:partial, {accumulator, ""}}
+  end
+
   defp decode_remaining_length(<<encodedValue, rest::binary>>, accumulator, multiplier)
        when multiplier <= 2_097_152 do
     remaining_bytes? = fn x -> Bitwise.band(x, 128) != 0 end
